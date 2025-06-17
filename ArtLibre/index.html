@@ -202,30 +202,48 @@
             // Fonction pour récupérer la liste des fichiers
             async function fetchZipFiles() {
                 try {
-                    // Note: Cette approche ne fonctionnera que si GitHub Pages sert un index.json
-                    // ou si vous avez un endpoint API qui liste les fichiers
-                    // Comme ce n'est pas le cas par défaut, nous allons simuler avec une liste prédéfinie
-                    // ou essayer de récupérer la page et parser le HTML (moins fiable)
+                    // On récupère le contenu de la page d'index du dossier
+                    const response = await fetch(filesUrl);
+                    const html = await response.text();
                     
-                    // Pour cet exemple, nous allons utiliser une approche alternative
-                    // car GitHub ne permet pas de lister les fichiers d'un dossier via une API simple
+                    // On parse le HTML pour extraire les liens
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const links = doc.querySelectorAll('a[href$=".zip"]');
                     
-                    // Liste des fichiers ZIP connus (à adapter selon vos besoins)
-                    const knownZipFiles = [
-                        'archive1.zip',
-                        'archive2.zip',
-                        'exemple.zip'
-                    ];
+                    if (links.length === 0) {
+                        loadingElement.style.display = 'none';
+                        errorContainer.style.display = 'block';
+                        return;
+                    }
                     
-                    // Vérification de l'existence des fichiers
-                    const availableFiles = await checkFilesExist(knownZipFiles);
+                    // On vérifie l'existence et la taille de chaque fichier
+                    const files = [];
+                    for (const link of links) {
+                        const fileName = link.getAttribute('href');
+                        const fileUrl = filesUrl + fileName;
+                        
+                        try {
+                            const fileResponse = await fetch(fileUrl, { method: 'HEAD' });
+                            if (fileResponse.ok) {
+                                const size = fileResponse.headers.get('content-length');
+                                files.push({
+                                    name: fileName,
+                                    url: fileUrl,
+                                    size: size ? formatFileSize(size) : 'Inconnue'
+                                });
+                            }
+                        } catch (e) {
+                            console.warn(`Erreur avec le fichier ${fileName}:`, e);
+                        }
+                    }
                     
                     loadingElement.style.display = 'none';
                     
-                    if (availableFiles.length === 0) {
+                    if (files.length === 0) {
                         errorContainer.style.display = 'block';
                     } else {
-                        displayFiles(availableFiles);
+                        displayFiles(files);
                     }
                 } catch (error) {
                     console.error('Erreur:', error);
@@ -235,34 +253,9 @@
                 }
             }
             
-            // Fonction pour vérifier l'existence des fichiers
-            async function checkFilesExist(fileList) {
-                const existingFiles = [];
-                
-                for (const file of fileList) {
-                    const fileUrl = filesUrl + file;
-                    try {
-                        const response = await fetch(fileUrl, { method: 'HEAD' });
-                        if (response.ok) {
-                            // Récupérer la taille du fichier
-                            const size = response.headers.get('content-length');
-                            existingFiles.push({
-                                name: file,
-                                url: fileUrl,
-                                size: size ? formatFileSize(size) : 'Inconnue'
-                            });
-                        }
-                    } catch (e) {
-                        console.warn(`Fichier non trouvé: ${file}`);
-                    }
-                }
-                
-                return existingFiles;
-            }
-            
             // Fonction pour formater la taille du fichier
             function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
+                if (!bytes || bytes === 0) return 'Inconnue';
                 const k = 1024;
                 const sizes = ['Bytes', 'KB', 'MB', 'GB'];
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -272,6 +265,9 @@
             // Fonction pour afficher les fichiers
             function displayFiles(files) {
                 filesContainer.innerHTML = '';
+                
+                // Trier les fichiers par nom
+                files.sort((a, b) => a.name.localeCompare(b.name));
                 
                 files.forEach(file => {
                     const fileCard = document.createElement('div');
