@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index des Archives ZIP</title>
+    <title>ArtLibre - Archives</title>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -13,21 +13,30 @@
             --text-color: #333333;
             --error-color: #e63946;
             --success-color: #2a9d8f;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
             background-color: var(--background-color);
-            margin: 0;
-            padding: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 0 1rem;
         }
 
         header {
@@ -36,63 +45,83 @@
         }
 
         h1 {
-            color: var(--primary-color);
             font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
         }
 
         .subtitle {
-            color: #666;
             font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .zip-grid {
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            color: var(--primary-color);
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            background-color: #ffeeee;
+            border-radius: var(--border-radius);
+            color: var(--error-color);
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            border-left: 5px solid var(--error-color);
+        }
+
+        .files-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-top: 2rem;
         }
 
-        .zip-card {
-            background: var(--card-color);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .file-card {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
             overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
             display: flex;
             flex-direction: column;
         }
 
-        .zip-card:hover {
+        .file-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
 
-        .zip-icon {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            font-size: 2.5rem;
+        .file-icon {
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            font-size: 3rem;
+            color: var(--primary-color);
         }
 
-        .zip-content {
+        .file-info {
             padding: 1.5rem;
             flex-grow: 1;
-            display: flex;
-            flex-direction: column;
         }
 
-        .zip-name {
+        .file-name {
             font-weight: 600;
-            font-size: 1.2rem;
             margin-bottom: 0.5rem;
+            font-size: 1.1rem;
             word-break: break-word;
         }
 
-        .zip-size {
-            color: #666;
+        .file-size {
             font-size: 0.9rem;
+            color: #6c757d;
             margin-bottom: 1rem;
         }
 
@@ -101,69 +130,39 @@
             background-color: var(--primary-color);
             color: white;
             text-decoration: none;
-            padding: 0.6rem 1rem;
-            border-radius: 5px;
-            text-align: center;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
             font-weight: 500;
-            transition: background-color 0.3s ease;
-            margin-top: auto;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
         }
 
         .download-btn:hover {
             background-color: var(--secondary-color);
         }
 
-        .error-message {
-            text-align: center;
-            padding: 2rem;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .error-icon {
-            font-size: 3rem;
-            color: var(--error-color);
-            margin-bottom: 1rem;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid var(--primary-color);
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         footer {
             text-align: center;
-            margin-top: 3rem;
-            color: #666;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
             font-size: 0.9rem;
         }
 
         @media (max-width: 768px) {
-            .container {
+            body {
                 padding: 1rem;
             }
             
-            .zip-grid {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .files-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -172,161 +171,136 @@
 <body>
     <div class="container">
         <header>
-            <h1>Index des Archives</h1>
-            <p class="subtitle">Liste des fichiers ZIP disponibles dans ce dossier</p>
+            <h1>Archives ArtLibre</h1>
+            <p class="subtitle">Téléchargez les archives disponibles ci-dessous</p>
         </header>
 
-        <div id="zip-container">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Chargement des fichiers...</p>
-            </div>
+        <div id="loading" class="loading">
+            Chargement des archives...
         </div>
 
+        <div id="error-container" class="error-message" style="display: none;">
+            Aucune archive ZIP trouvée dans le dossier.
+        </div>
+
+        <div id="files-container" class="files-grid"></div>
+
         <footer>
-            <p>Généré automatiquement - &copy; <span id="current-year"></span></p>
+            <p>© 2023 ArtLibre - Tous les droits sont libres</p>
         </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mettre à jour l'année du footer
-            document.getElementById('current-year').textContent = new Date().getFullYear();
-
-            // Charger les fichiers ZIP
-            loadZipFiles();
-        });
-
-        function loadZipFiles() {
-            const container = document.getElementById('zip-container');
+            const filesContainer = document.getElementById('files-container');
+            const loadingElement = document.getElementById('loading');
+            const errorContainer = document.getElementById('error-container');
             
-            // Simuler un délai de chargement pour l'effet visuel
-            setTimeout(() => {
-                fetchZipFiles()
-                    .then(files => {
-                        if (files.length === 0) {
-                            showNoFilesError();
-                        } else {
-                            displayZipFiles(files);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        showError();
-                    });
-            }, 800);
-        }
-
-        function fetchZipFiles() {
-            return new Promise((resolve, reject) => {
-                // Dans GitHub Pages, nous ne pouvons pas scanner le dossier directement,
-                // donc nous allons essayer de détecter les fichiers .zip connus
-                // ou utiliser une liste prédéfinie si nécessaire.
-                
-                // Cette solution utilise une approche alternative car GitHub Pages ne permet pas
-                // de lister les fichiers d'un dossier directement via JavaScript
-                
-                // Méthode 1: Si vous connaissez les noms des fichiers à l'avance
-                const knownFiles = ['exemple1.zip', 'exemple2.zip']; // Remplacez par vos noms de fichiers
-                const availableFiles = [];
-                
-                // Vérifier l'existence de chaque fichier connu
-                const checks = knownFiles.map(file => {
-                    return checkFileExists(file)
-                        .then(exists => {
-                            if (exists) {
-                                availableFiles.push({
-                                    name: file,
-                                    size: 'N/A' // Impossible d'obtenir la taille sans serveur
-                                });
-                            }
-                        });
-                });
-                
-                Promise.all(checks)
-                    .then(() => {
-                        resolve(availableFiles);
-                    })
-                    .catch(() => {
-                        // Si la méthode échoue, essayer de détecter dynamiquement
-                        detectZipFiles()
-                            .then(files => resolve(files))
-                            .catch(err => reject(err));
-                    });
-            });
-        }
-
-        function checkFileExists(filename) {
-            return fetch(filename, { method: 'HEAD' })
-                .then(response => {
-                    return response.ok;
-                })
-                .catch(() => false);
-        }
-
-        function detectZipFiles() {
-            return new Promise((resolve, reject) => {
-                // Cette méthode est limitée sur GitHub Pages
-                // Elle ne peut pas lister les fichiers du dossier
-                // Nous retournons donc un tableau vide
-                resolve([]);
-            });
-        }
-
-        function displayZipFiles(files) {
-            const container = document.getElementById('zip-container');
+            // URL du dossier contenant les fichiers ZIP
+            const filesUrl = 'https://stormwindsky.github.io/ArtLibre/ArtLibre/files/';
             
-            if (files.length === 0) {
-                showNoFilesError();
-                return;
+            // Fonction pour récupérer la liste des fichiers
+            async function fetchZipFiles() {
+                try {
+                    // Note: Cette approche ne fonctionnera que si GitHub Pages sert un index.json
+                    // ou si vous avez un endpoint API qui liste les fichiers
+                    // Comme ce n'est pas le cas par défaut, nous allons simuler avec une liste prédéfinie
+                    // ou essayer de récupérer la page et parser le HTML (moins fiable)
+                    
+                    // Pour cet exemple, nous allons utiliser une approche alternative
+                    // car GitHub ne permet pas de lister les fichiers d'un dossier via une API simple
+                    
+                    // Liste des fichiers ZIP connus (à adapter selon vos besoins)
+                    const knownZipFiles = [
+                        'archive1.zip',
+                        'archive2.zip',
+                        'exemple.zip'
+                    ];
+                    
+                    // Vérification de l'existence des fichiers
+                    const availableFiles = await checkFilesExist(knownZipFiles);
+                    
+                    loadingElement.style.display = 'none';
+                    
+                    if (availableFiles.length === 0) {
+                        errorContainer.style.display = 'block';
+                    } else {
+                        displayFiles(availableFiles);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    loadingElement.style.display = 'none';
+                    errorContainer.style.display = 'block';
+                    errorContainer.textContent = 'Erreur lors du chargement des archives.';
+                }
             }
             
-            let html = '<div class="zip-grid">';
+            // Fonction pour vérifier l'existence des fichiers
+            async function checkFilesExist(fileList) {
+                const existingFiles = [];
+                
+                for (const file of fileList) {
+                    const fileUrl = filesUrl + file;
+                    try {
+                        const response = await fetch(fileUrl, { method: 'HEAD' });
+                        if (response.ok) {
+                            // Récupérer la taille du fichier
+                            const size = response.headers.get('content-length');
+                            existingFiles.push({
+                                name: file,
+                                url: fileUrl,
+                                size: size ? formatFileSize(size) : 'Inconnue'
+                            });
+                        }
+                    } catch (e) {
+                        console.warn(`Fichier non trouvé: ${file}`);
+                    }
+                }
+                
+                return existingFiles;
+            }
             
-            files.forEach(file => {
-                html += `
-                    <div class="zip-card">
-                        <div class="zip-icon">
-                            <i class="fas fa-file-archive">ZIP</i>
-                        </div>
-                        <div class="zip-content">
-                            <div class="zip-name">${file.name}</div>
-                            <div class="zip-size">Taille: ${file.size}</div>
-                            <a href="${file.name}" class="download-btn" download>
-                                Télécharger
-                            </a>
-                        </div>
-                    </div>
-                `;
-            });
+            // Fonction pour formater la taille du fichier
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
             
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function showNoFilesError() {
-            const container = document.getElementById('zip-container');
-            container.innerHTML = `
-                <div class="error-message">
-                    <div class="error-icon">!</div>
-                    <h2>Aucun fichier ZIP trouvé</h2>
-                    <p>Il n'y a actuellement aucun fichier .zip dans ce dossier.</p>
-                    <p>Veuillez ajouter des fichiers .zip dans le même répertoire que cette page.</p>
-                </div>
-            `;
-        }
-
-        function showError() {
-            const container = document.getElementById('zip-container');
-            container.innerHTML = `
-                <div class="error-message">
-                    <div class="error-icon">!</div>
-                    <h2>Erreur de chargement</h2>
-                    <p>Une erreur s'est produite lors du chargement des fichiers.</p>
-                    <p>Veuillez réessayer plus tard ou vérifier la console pour plus de détails.</p>
-                </div>
-            `;
-        }
+            // Fonction pour afficher les fichiers
+            function displayFiles(files) {
+                filesContainer.innerHTML = '';
+                
+                files.forEach(file => {
+                    const fileCard = document.createElement('div');
+                    fileCard.className = 'file-card';
+                    
+                    fileCard.innerHTML = `
+                        <div class="file-icon">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">Taille: ${file.size}</div>
+                            <a href="${file.url}" class="download-btn" download>Télécharger</a>
+                        </div>
+                    `;
+                    
+                    filesContainer.appendChild(fileCard);
+                });
+            }
+            
+            // Démarrer le chargement des fichiers
+            fetchZipFiles();
+        });
     </script>
 </body>
 </html>
