@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualisateur de fichiers ZIP local</title>
+    <title>Index des Archives ZIP</title>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -15,55 +15,52 @@
             --success-color: #2a9d8f;
         }
 
-        * {
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            padding: 20px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 3rem;
         }
 
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
             color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
         }
 
         .subtitle {
-            font-size: 1.1rem;
             color: #666;
+            font-size: 1.1rem;
         }
 
-        .zip-container {
+        .zip-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
         .zip-card {
-            background-color: var(--card-color);
+            background: var(--card-color);
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .zip-card:hover {
@@ -71,71 +68,82 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .zip-header {
+        .zip-icon {
             background-color: var(--primary-color);
             color: white;
-            padding: 15px;
-            font-weight: bold;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 2.5rem;
         }
 
         .zip-content {
-            padding: 20px;
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        .zip-info {
-            margin-bottom: 15px;
+        .zip-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
         }
 
-        .zip-info span {
-            font-weight: bold;
+        .zip-size {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
         }
 
-        .btn {
+        .download-btn {
             display: inline-block;
-            padding: 10px 20px;
             background-color: var(--primary-color);
             color: white;
             text-decoration: none;
+            padding: 0.6rem 1rem;
             border-radius: 5px;
-            transition: background-color 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-download {
-            width: 100%;
             text-align: center;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            margin-top: auto;
+        }
+
+        .download-btn:hover {
+            background-color: var(--secondary-color);
         }
 
         .error-message {
             text-align: center;
-            padding: 40px;
-            background-color: #ffeeee;
+            padding: 2rem;
+            background-color: #fff;
             border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .error-icon {
+            font-size: 3rem;
             color: var(--error-color);
-            font-size: 1.2rem;
-            border-left: 5px solid var(--error-color);
+            margin-bottom: 1rem;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 2rem;
             font-size: 1.2rem;
+            color: #666;
         }
 
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
             border-top: 4px solid var(--primary-color);
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 1rem;
         }
 
         @keyframes spin {
@@ -145,137 +153,180 @@
 
         footer {
             text-align: center;
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
+            margin-top: 3rem;
             color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .zip-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Visualisateur de fichiers ZIP</h1>
-            <p class="subtitle">Liste des archives disponibles dans ce dossier</p>
+            <h1>Index des Archives</h1>
+            <p class="subtitle">Liste des fichiers ZIP disponibles dans ce dossier</p>
         </header>
 
-        <div id="content">
+        <div id="zip-container">
             <div class="loading">
                 <div class="spinner"></div>
-                <p>Recherche des fichiers ZIP...</p>
+                <p>Chargement des fichiers...</p>
             </div>
         </div>
-    </div>
 
-    <footer>
-        <p>Application locale - &copy; <span id="year"></span></p>
-    </footer>
+        <footer>
+            <p>Généré automatiquement - &copy; <span id="current-year"></span></p>
+        </footer>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mettre à jour l'année dans le footer
-            document.getElementById('year').textContent = new Date().getFullYear();
+            // Mettre à jour l'année du footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
 
-            // Fonction pour récupérer les fichiers ZIP
-            async function fetchZipFiles() {
-                const contentDiv = document.getElementById('content');
-                
-                try {
-                    // Cette méthode fonctionne seulement si le script est servi par un serveur web local
-                    const response = await fetch(window.location.href);
-                    const text = await response.text();
-                    
-                    // Analyser le HTML pour trouver les liens vers les fichiers .zip
-                    const parser = new DOMParser();
-                    const htmlDoc = parser.parseFromString(text, 'text/html');
-                    const links = htmlDoc.querySelectorAll('a[href$=".zip"]');
-                    
-                    if (links.length === 0) {
-                        showNoZipFiles();
-                        return;
-                    }
-                    
-                    // Créer un tableau d'objets avec les infos des fichiers ZIP
-                    const zipFiles = Array.from(links).map(link => {
-                        return {
-                            name: link.textContent.trim(),
-                            url: link.getAttribute('href'),
-                            size: 'Taille inconnue' // Impossible d'obtenir la taille sans API
-                        };
-                    });
-                    
-                    displayZipFiles(zipFiles);
-                } catch (error) {
-                    console.error('Erreur:', error);
-                    showError();
-                }
-            }
+            // Charger les fichiers ZIP
+            loadZipFiles();
+        });
+
+        function loadZipFiles() {
+            const container = document.getElementById('zip-container');
             
-            // Afficher les fichiers ZIP
-            function displayZipFiles(files) {
-                const contentDiv = document.getElementById('content');
-                let html = '';
+            // Simuler un délai de chargement pour l'effet visuel
+            setTimeout(() => {
+                fetchZipFiles()
+                    .then(files => {
+                        if (files.length === 0) {
+                            showNoFilesError();
+                        } else {
+                            displayZipFiles(files);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showError();
+                    });
+            }, 800);
+        }
+
+        function fetchZipFiles() {
+            return new Promise((resolve, reject) => {
+                // Dans GitHub Pages, nous ne pouvons pas scanner le dossier directement,
+                // donc nous allons essayer de détecter les fichiers .zip connus
+                // ou utiliser une liste prédéfinie si nécessaire.
                 
-                if (files.length === 1) {
-                    html += `<p class="subtitle" style="text-align: center;">${files.length} fichier ZIP trouvé</p>`;
-                } else {
-                    html += `<p class="subtitle" style="text-align: center;">${files.length} fichiers ZIP trouvés</p>`;
-                }
+                // Cette solution utilise une approche alternative car GitHub Pages ne permet pas
+                // de lister les fichiers d'un dossier directement via JavaScript
                 
-                html += '<div class="zip-container">';
+                // Méthode 1: Si vous connaissez les noms des fichiers à l'avance
+                const knownFiles = ['exemple1.zip', 'exemple2.zip']; // Remplacez par vos noms de fichiers
+                const availableFiles = [];
                 
-                files.forEach(file => {
-                    html += `
-                        <div class="zip-card">
-                            <div class="zip-header">
-                                ${file.name}
-                            </div>
-                            <div class="zip-content">
-                                <div class="zip-info">
-                                    <span>Taille:</span> ${file.size}
-                                </div>
-                                <a href="${file.url}" class="btn btn-download" download>
-                                    Télécharger
-                                </a>
-                            </div>
-                        </div>
-                    `;
+                // Vérifier l'existence de chaque fichier connu
+                const checks = knownFiles.map(file => {
+                    return checkFileExists(file)
+                        .then(exists => {
+                            if (exists) {
+                                availableFiles.push({
+                                    name: file,
+                                    size: 'N/A' // Impossible d'obtenir la taille sans serveur
+                                });
+                            }
+                        });
                 });
                 
-                html += '</div>';
-                contentDiv.innerHTML = html;
+                Promise.all(checks)
+                    .then(() => {
+                        resolve(availableFiles);
+                    })
+                    .catch(() => {
+                        // Si la méthode échoue, essayer de détecter dynamiquement
+                        detectZipFiles()
+                            .then(files => resolve(files))
+                            .catch(err => reject(err));
+                    });
+            });
+        }
+
+        function checkFileExists(filename) {
+            return fetch(filename, { method: 'HEAD' })
+                .then(response => {
+                    return response.ok;
+                })
+                .catch(() => false);
+        }
+
+        function detectZipFiles() {
+            return new Promise((resolve, reject) => {
+                // Cette méthode est limitée sur GitHub Pages
+                // Elle ne peut pas lister les fichiers du dossier
+                // Nous retournons donc un tableau vide
+                resolve([]);
+            });
+        }
+
+        function displayZipFiles(files) {
+            const container = document.getElementById('zip-container');
+            
+            if (files.length === 0) {
+                showNoFilesError();
+                return;
             }
             
-            // Afficher un message si aucun fichier ZIP n'est trouvé
-            function showNoZipFiles() {
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `
-                    <div class="error-message">
-                        <h2>Aucun fichier ZIP trouvé</h2>
-                        <p>Placez des fichiers .zip dans le même dossier que cette page web.</p>
-                    </div>
-                `;
-            }
+            let html = '<div class="zip-grid">';
             
-            // Afficher un message d'erreur
-            function showError() {
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `
-                    <div class="error-message">
-                        <h2>Erreur de chargement</h2>
-                        <p>Impossible de charger la liste des fichiers. Ouvrez cette page via un serveur web local (comme Live Server).</p>
-                        <p style="margin-top: 20px;">
-                            <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer" target="_blank" class="btn">
-                                Installer Live Server
+            files.forEach(file => {
+                html += `
+                    <div class="zip-card">
+                        <div class="zip-icon">
+                            <i class="fas fa-file-archive">ZIP</i>
+                        </div>
+                        <div class="zip-content">
+                            <div class="zip-name">${file.name}</div>
+                            <div class="zip-size">Taille: ${file.size}</div>
+                            <a href="${file.name}" class="download-btn" download>
+                                Télécharger
                             </a>
-                        </p>
+                        </div>
                     </div>
                 `;
-            }
+            });
             
-            // Démarrer la recherche des fichiers ZIP
-            fetchZipFiles();
-        });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function showNoFilesError() {
+            const container = document.getElementById('zip-container');
+            container.innerHTML = `
+                <div class="error-message">
+                    <div class="error-icon">!</div>
+                    <h2>Aucun fichier ZIP trouvé</h2>
+                    <p>Il n'y a actuellement aucun fichier .zip dans ce dossier.</p>
+                    <p>Veuillez ajouter des fichiers .zip dans le même répertoire que cette page.</p>
+                </div>
+            `;
+        }
+
+        function showError() {
+            const container = document.getElementById('zip-container');
+            container.innerHTML = `
+                <div class="error-message">
+                    <div class="error-icon">!</div>
+                    <h2>Erreur de chargement</h2>
+                    <p>Une erreur s'est produite lors du chargement des fichiers.</p>
+                    <p>Veuillez réessayer plus tard ou vérifier la console pour plus de détails.</p>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
