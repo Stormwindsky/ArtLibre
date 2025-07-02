@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtLibre - Archives</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --error-color: #e63946;
+            --success-color: #2a9d8f;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            color: var(--primary-color);
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            background-color: #ffeeee;
+            border-radius: var(--border-radius);
+            color: var(--error-color);
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            border-left: 5px solid var(--error-color);
+        }
+
+        .retry-btn {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .retry-btn:hover {
+            opacity: 0.9;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .file-card {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .file-icon {
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+
+        .file-info {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            word-break: break-word;
+        }
+
+        .file-size {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+
+        .download-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ArtLibre Archives</h1>
+            <p class="subtitle">Download available archives below</p>
+        </header>
+
+        <div id="loading" class="loading">
+            Loading archives...
+        </div>
+
+        <div id="error-container" class="error-message" style="display: none;">
+            <div id="error-message">No ZIP archives found in the folder.</div>
+            <button id="retry-btn" class="retry-btn">Try Again</button>
+        </div>
+
+        <div id="files-container" class="files-grid"></div>
+
+        <footer>
+            <p>© 2023 ArtLibre - All rights are free</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filesContainer = document.getElementById('files-container');
+            const loadingElement = document.getElementById('loading');
+            const errorContainer = document.getElementById('error-container');
+            const errorMessage = document.getElementById('error-message');
+            const retryBtn = document.getElementById('retry-btn');
+            
+            // GitHub repository information
+            const repoOwner = 'stormwindsky';
+            const repoName = 'ArtLibre';
+            const folderPath = 'ArtLibre/files'; // Adjust this path as needed
+            
+            // Function to fetch ZIP files using GitHub API
+            async function fetchZipFiles() {
+                try {
+                    // Show loading state
+                    loadingElement.style.display = 'block';
+                    errorContainer.style.display = 'none';
+                    filesContainer.innerHTML = '';
+                    
+                    // Minimum loading time to avoid flickering (500ms)
+                    const startTime = Date.now();
+                    
+                    // GitHub API URL to get folder contents
+                    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`;
+                    
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch files (HTTP ${response.status})`);
+                    }
+                    
+                    const filesData = await response.json();
+                    
+                    // Filter only ZIP files
+                    const zipFiles = filesData.filter(file => 
+                        file.name.toLowerCase().endsWith('.zip') && 
+                        file.type === 'file'
+                    );
+                    
+                    if (zipFiles.length === 0) {
+                        throw new Error('No ZIP archives found in the folder');
+                    }
+                    
+                    // Prepare files data
+                    const files = zipFiles.map(file => ({
+                        name: file.name,
+                        url: file.download_url,
+                        size: formatFileSize(file.size)
+                    }));
+                    
+                    // Ensure loading is shown for at least 500ms
+                    const elapsed = Date.now() - startTime;
+                    if (elapsed < 500) {
+                        await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
+                    }
+                    
+                    // Hide loading and display files
+                    loadingElement.style.display = 'none';
+                    displayFiles(files);
+                } catch (error) {
+                    console.error('Error:', error);
+                    loadingElement.style.display = 'none';
+                    errorMessage.textContent = error.message || 'Error loading archives';
+                    errorContainer.style.display = 'block';
+                }
+            }
+            
+            // Function to format file size
+            function formatFileSize(bytes) {
+                if (!bytes || bytes === 0) return 'Unknown';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Function to display files
+            function displayFiles(files) {
+                filesContainer.innerHTML = '';
+                
+                // Sort files by name
+                files.sort((a, b) => a.name.localeCompare(b.name));
+                
+                files.forEach(file => {
+                    const fileCard = document.createElement('div');
+                    fileCard.className = 'file-card';
+                    
+                    fileCard.innerHTML = `
+                        <div class="file-icon">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">Size: ${file.size}</div>
+                            <a href="${file.url}" class="download-btn" download>Download</a>
+                        </div>
+                    `;
+                    
+                    filesContainer.appendChild(fileCard);
+                });
+            }
+            
+            // Retry button event listener
+            retryBtn.addEventListener('click', fetchZipFiles);
+            
+            // Initial load
+            fetchZipFiles();
+        });
+    </script>
+</body>
+</html>
