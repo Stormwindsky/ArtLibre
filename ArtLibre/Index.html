@@ -41,7 +41,7 @@
 
         header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem; /* Reduced margin for search bar */
         }
 
         h1 {
@@ -56,6 +56,28 @@
             max-width: 600px;
             margin: 0 auto;
         }
+        
+        /* Search Bar Styling */
+        .search-container {
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border: 2px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        /* End Search Bar Styling */
 
         .loading {
             text-align: center;
@@ -189,7 +211,10 @@
             <h1>ArtLibre Public Domain Thing i made lol</h1>
             <p class="subtitle">Download available .zip below</p>
         </header>
-
+        
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Search files by name...">
+        </div>
         <div id="loading" class="loading">
             Loading zip...
         </div>
@@ -202,7 +227,7 @@
         <div id="files-container" class="files-grid"></div>
 
         <footer>
-            <p>Free to use & no give credits if you want but appreciate 😁 </p>
+            <p>Free to use & no need to give credits if you want but appreciated 😁 </p>
         </footer>
     </div>
 
@@ -213,7 +238,11 @@
             const errorContainer = document.getElementById('error-container');
             const errorMessage = document.getElementById('error-message');
             const retryBtn = document.getElementById('retry-btn');
+            const searchInput = document.getElementById('search-input'); // Get search input
             
+            // Global array to hold all fetched files
+            let allFiles = []; 
+
             // GitHub repository information
             const repoOwner = 'stormwindsky';
             const repoName = 'ArtLibre';
@@ -252,11 +281,14 @@
                     }
                     
                     // Prepare files data
-                    const files = zipFiles.map(file => ({
+                    allFiles = zipFiles.map(file => ({
                         name: file.name,
                         url: file.download_url,
                         size: formatFileSize(file.size)
                     }));
+                    
+                    // Sort all files by name
+                    allFiles.sort((a, b) => a.name.localeCompare(b.name));
                     
                     // Ensure loading is shown for at least 500ms
                     const elapsed = Date.now() - startTime;
@@ -264,13 +296,14 @@
                         await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
                     }
                     
-                    // Hide loading and display files
+                    // Hide loading and display files (all initially)
                     loadingElement.style.display = 'none';
-                    displayFiles(files);
+                    displayFiles(allFiles);
                 } catch (error) {
                     console.error('Error:', error);
                     loadingElement.style.display = 'none';
-                    errorMessage.textContent = error.message || 'Error loading archives';
+                    // Error message in English
+                    errorMessage.textContent = error.message || 'Error loading archives'; 
                     errorContainer.style.display = 'block';
                 }
             }
@@ -284,17 +317,20 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
             
-            // Function to display files
+            // Function to display a list of files
             function displayFiles(files) {
                 filesContainer.innerHTML = '';
                 
-                // Sort files by name
-                files.sort((a, b) => a.name.localeCompare(b.name));
+                if (files.length === 0) {
+                    filesContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #6c757d;">No files found matching your search.</div>';
+                    return;
+                }
                 
                 files.forEach(file => {
                     const fileCard = document.createElement('div');
                     fileCard.className = 'file-card';
                     
+                    // File card structure using the ZIP icon
                     fileCard.innerHTML = `
                         <div class="file-icon">
                             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -315,6 +351,28 @@
                     filesContainer.appendChild(fileCard);
                 });
             }
+            
+            // Function to handle search input
+            function handleSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                if (searchTerm === '') {
+                    // Display all files if search term is empty
+                    displayFiles(allFiles);
+                    return;
+                }
+                
+                // Filter the files based on the search term
+                const filteredFiles = allFiles.filter(file => 
+                    file.name.toLowerCase().includes(searchTerm)
+                );
+                
+                // Display the filtered files
+                displayFiles(filteredFiles);
+            }
+
+            // Event listener for search input
+            searchInput.addEventListener('input', handleSearch);
             
             // Retry button event listener
             retryBtn.addEventListener('click', fetchZipFiles);
